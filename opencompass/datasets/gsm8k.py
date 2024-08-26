@@ -2,6 +2,7 @@ import json
 import os
 import re
 from os import environ
+import random
 
 from datasets import Dataset, DatasetDict
 
@@ -16,11 +17,13 @@ from .base import BaseDataset
 class GSM8KDataset(BaseDataset):
 
     @staticmethod
-    def load(path):
+    def load(path, limit = 50):
         path = get_data_path(path)
         if environ.get('DATASET_SOURCE') == 'ModelScope':
             from modelscope import MsDataset
             dataset = MsDataset.load(dataset_name=path)
+            if limit is not None:
+                dataset = dataset.select(range(min(limit, len(dataset))))  # 限制为前 limit 条数据
         else:
             datasets = {}
             for split in ['train', 'test']:
@@ -30,9 +33,13 @@ class GSM8KDataset(BaseDataset):
                     for line in f:
                         line = json.loads(line.strip())
                         dataset.append(line)
+                if limit is not None:
+                    # random.shuffle(dataset)  # 随机打乱数据
+                    dataset = dataset[:limit]  # 选择前 limit 条数据
                 datasets[split] = Dataset.from_list(dataset)
             dataset = DatasetDict(datasets)
         return dataset
+
 
 
 @TEXT_POSTPROCESSORS.register_module('gsm8k_dataset')
