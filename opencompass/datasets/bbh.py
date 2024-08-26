@@ -2,7 +2,7 @@ import json
 import os.path as osp
 import re
 from os import environ
-
+import random
 from datasets import Dataset
 
 from opencompass.openicl.icl_evaluator import BaseEvaluator
@@ -17,15 +17,19 @@ from .base import BaseDataset
 class BBHDataset(BaseDataset):
 
     @staticmethod
-    def load(path: str, name: str):
+    def load(path: str, name: str, limit: int = 5):
         path = get_data_path(path)
         if environ.get('DATASET_SOURCE') == 'ModelScope':
             from modelscope import MsDataset
             dataset = MsDataset.load(path, subset_name=name, split='test')
+            data = dataset.to_list()  # 将 ModelScope 数据集转换为列表
         else:
             with open(osp.join(path, f'{name}.json'), 'r') as f:
                 data = json.load(f)['examples']
-            dataset = Dataset.from_list(data)
+        if limit is not None:
+            # random.shuffle(data)  # 随机打乱数据
+            data = data[:limit]  # 选择前 limit 条数据
+        dataset = Dataset.from_list(data)
         return dataset
 
 

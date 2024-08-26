@@ -3,6 +3,7 @@ import os.path as osp
 from os import environ
 
 from datasets import Dataset
+import random
 
 from opencompass.registry import LOAD_DATASET
 from opencompass.utils import get_data_path
@@ -14,14 +15,14 @@ from .base import BaseDataset
 class ARCDataset(BaseDataset):
 
     @staticmethod
-    def load(path: str, name: str):
+    def load(path: str, name: str, limit: int = 50):
         path = get_data_path(path)
+        rows = []
         if environ.get('DATASET_SOURCE') == 'ModelScope':
             from modelscope import MsDataset
             dataset = MsDataset.load(path,
                                      split='validation',
                                      subset_name=name)
-            rows = []
             for row in dataset:
                 answerKey = row['answerKey']
                 question = row['question']
@@ -41,7 +42,6 @@ class ARCDataset(BaseDataset):
                 })
         else:
             with open(path, 'r', errors='ignore') as in_f:
-                rows = []
                 for line in in_f:
                     item = json.loads(line.strip())
                     question = item['question']
@@ -57,6 +57,12 @@ class ARCDataset(BaseDataset):
                         'textC': question['choices'][2]['text'],
                         'textD': question['choices'][3]['text'],
                     })
+
+        # 随机打乱数据并限制为前 limit 条数据
+        if limit is not None:
+            # random.shuffle(rows)
+            rows = rows[:limit]
+
         dataset = Dataset.from_list(rows)
         return dataset
 
