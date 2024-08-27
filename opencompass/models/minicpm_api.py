@@ -18,13 +18,14 @@ class minicpm(BaseAPIModel):
                  max_seq_len: int = 2048,
                  meta_template: Optional[Dict] = None,
                  retry: int = 5,
-                 generation_kwargs: Dict = {}):
+                 generation_kwargs: Dict = {},
+                 ):
         super().__init__(path=path,
                          max_seq_len=max_seq_len,
                          query_per_second=query_per_second,
                          meta_template=meta_template,
                          retry=retry,
-                         generation_kwargs=generation_kwargs)
+                         generation_kwargs=generation_kwargs,)
 
     def generate(
         self,
@@ -78,9 +79,10 @@ class minicpm(BaseAPIModel):
                     messages.append(msg)
             data = {
                 'messages':
-                messages
+                messages,
+                "max_out_len":
+                max_out_len
             }
-            print(data)
             max_num_retries = 0
             while max_num_retries < self.retry:
                 self.acquire()
