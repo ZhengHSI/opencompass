@@ -2,7 +2,7 @@ import csv
 import json
 import os.path as osp
 from os import environ
-# import random
+
 from datasets import Dataset, DatasetDict
 
 from opencompass.registry import LOAD_DATASET
@@ -15,13 +15,16 @@ from .base import BaseDataset
 class MMLUDataset(BaseDataset):
 
     @staticmethod
-    def load(path: str, name: str, limit=5):
+    def load(path: str, name: str):
         path = get_data_path(path)
         dataset = DatasetDict()
         if environ.get('DATASET_SOURCE') == 'ModelScope':
             from modelscope import MsDataset
             for split in ['dev', 'test']:
-                ms_dataset = MsDataset.load(path, subset_name=name, split=split)
+                # 从 ModelScope 加载数据
+                ms_dataset = MsDataset.load(path,
+                                            subset_name=name,
+                                            split=split)
                 dataset_list = []
                 for line in ms_dataset:
                     dataset_list.append({
@@ -32,12 +35,7 @@ class MMLUDataset(BaseDataset):
                         'D': line['choices'][3],
                         'target': 'ABCD'[line['answer']],
                     })
-                # 随机打乱并限制为前 limit 条数据
-                # random.shuffle(dataset_list)
-                if limit is not None:
-                    dataset_list = dataset_list[:limit]
                 dataset[split] = Dataset.from_list(dataset_list)
-
         else:
             for split in ['dev', 'test']:
                 raw_data = []
@@ -54,16 +52,14 @@ class MMLUDataset(BaseDataset):
                             'D': row[4],
                             'target': row[5],
                         })
-                # 随机打乱并限制为前 limit 条数据
-                # random.shuffle(raw_data)
-                if limit is not None:
-                    raw_data = raw_data[:limit]
                 dataset[split] = Dataset.from_list(raw_data)
         return dataset
 
 
 class MMLUDatasetClean(BaseDataset):
 
+    # load the contamination annotations of CEval from
+    # https://github.com/liyucheng09/Contamination_Detector
     @staticmethod
     def load_contamination_annotations(path, split='val'):
         import requests
@@ -91,7 +87,7 @@ class MMLUDatasetClean(BaseDataset):
         return annotations
 
     @staticmethod
-    def load(path: str, name: str, limit=5):  # 添加 limit 参数
+    def load(path: str, name: str):
         path = get_data_path(path)
         dataset = DatasetDict()
         if environ.get('DATASET_SOURCE') == 'ModelScope':
@@ -99,13 +95,15 @@ class MMLUDatasetClean(BaseDataset):
                 from modelscope import MsDataset
 
                 # 从 ModelScope 加载数据
-                ms_dataset = MsDataset.load(path, subset_name=name, split=split)
+                ms_dataset = MsDataset.load(path,
+                                            subset_name=name,
+                                            split=split)
                 if split == 'test':
-                    annotations = MMLUDatasetClean.load_contamination_annotations(path, split)
+                    annotations = \
+                        MMLUDatasetClean.load_contamination_annotations(
+                            path, split)
                 dataset_list = []
-                for i, line in enumerate(ms_dataset):
-                    if i >= limit:  # 限制加载数据条数
-                        break
+                for row_index, line in enumerate(ms_dataset):
                     item = {
                         'input': line['question'],
                         'A': line['choices'][0],
@@ -115,7 +113,7 @@ class MMLUDatasetClean(BaseDataset):
                         'target': 'ABCD'[line['answer']],
                     }
                     if split == 'test':
-                        row_id = f'{name} {i}'
+                        row_id = f'{name} {row_index}'
                         if row_id in annotations:
                             is_clean = annotations[row_id][0]
                         else:
@@ -128,12 +126,12 @@ class MMLUDatasetClean(BaseDataset):
                 raw_data = []
                 filename = osp.join(path, split, f'{name}_{split}.csv')
                 if split == 'test':
-                    annotations = MMLUDatasetClean.load_contamination_annotations(path, split)
+                    annotations = \
+                        MMLUDatasetClean.load_contamination_annotations(
+                            path, split)
                 with open(filename, encoding='utf-8') as f:
                     reader = csv.reader(f)
-                    for i, row in enumerate(reader):
-                        if i >= limit:  # 限制加载数据条数
-                            break
+                    for row_index, row in enumerate(reader):
                         assert len(row) == 6
                         item = {
                             'input': row[0],
@@ -144,7 +142,7 @@ class MMLUDatasetClean(BaseDataset):
                             'target': row[5],
                         }
                         if split == 'test':
-                            row_id = f'{name} {i}'
+                            row_id = f'{name} {row_index}'
                             if row_id in annotations:
                                 is_clean = annotations[row_id][0]
                             else:

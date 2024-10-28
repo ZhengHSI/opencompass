@@ -1,7 +1,7 @@
 import json
 import re
 from os import environ
-import random
+
 from datasets import Dataset, DatasetDict
 
 from opencompass.openicl.icl_evaluator import BaseEvaluator
@@ -140,7 +140,7 @@ def extract_answer(response_text: str):
 class MATHDataset(BaseDataset):
 
     @staticmethod
-    def load(path: str, limit=50):
+    def load(path: str):
         path = get_data_path(path)
         dataset = DatasetDict()
         raw_data = []
@@ -149,20 +149,20 @@ class MATHDataset(BaseDataset):
             ms_dataset = MsDataset.load(path, split='train')
             for item in ms_dataset:
                 raw_data.append({
-                    'problem': item['problem'],
-                    'solution': extract_boxed_answer(item['solution'])
+                    'problem':
+                    item['problem'],
+                    'solution':
+                    extract_boxed_answer(item['solution'])
                 })
         else:
             data = json.load(open(path))
             for i in data.keys():
                 raw_data.append({
-                    'problem': data[i]['problem'],
-                    'solution': extract_boxed_answer(data[i]['solution'])
+                    'problem':
+                    data[i]['problem'],
+                    'solution':
+                    extract_boxed_answer(data[i]['solution'])
                 })
-        if limit is not None:
-            # random.shuffle(raw_data)  # 随机打乱数据
-            raw_data = raw_data[:limit]  # 选择前 limit 条数据
-
         dataset['test'] = Dataset.from_list(raw_data)
         dataset['train'] = Dataset.from_list(raw_data)
         return dataset

@@ -1,7 +1,7 @@
 import json
 import os.path as osp
 from os import environ
-# import random
+
 from datasets import Dataset, DatasetDict
 
 from opencompass.registry import LOAD_DATASET
@@ -14,7 +14,7 @@ from .base import BaseDataset
 class HellaswagDataset(BaseDataset):
 
     @staticmethod
-    def load(path, limit=50):
+    def load(path):
         path = get_data_path(path)
         dataset = []
         if environ.get('DATASET_SOURCE') == 'ModelScope':
@@ -41,13 +41,9 @@ class HellaswagDataset(BaseDataset):
                         'D': data['choices'][3],
                         'label': data['gold'],
                     })
-        # 在这里随机选择 limit 条数据
-        if limit is not None and len(dataset) > limit:
-            # dataset = random.sample(dataset, limit)
-            dataset = dataset[:limit]
-
         dataset = Dataset.from_list(dataset)
         return dataset
+
 
 @LOAD_DATASET.register_module()
 class HellaswagDataset_V2(BaseDataset):
@@ -123,7 +119,7 @@ class HellaswagDataset_V3(BaseDataset):
 class HellaswagDatasetwithICE(BaseDataset):
 
     @staticmethod
-    def load(path, limit=50):  # 添加 limit 参数
+    def load(path):
         path = get_data_path(path)
         dataset_dict = DatasetDict()
         for split, filename in [
@@ -157,11 +153,9 @@ class HellaswagDatasetwithICE(BaseDataset):
                             'D': data['choices'][3],
                             'label': 'ABCD'[data['gold']],
                         })
-            if limit is not None and len(dataset) > limit:
-                # dataset = random.sample(dataset, limit)  # 随机采样 limit 个数据
-                dataset = dataset[:limit]
             dataset_dict[split] = Dataset.from_list(dataset)
         return dataset_dict
+
 
 class HellaswagDatasetClean(BaseDataset):
 

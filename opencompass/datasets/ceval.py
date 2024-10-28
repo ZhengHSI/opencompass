@@ -2,7 +2,7 @@ import csv
 import json
 import os.path as osp
 from os import environ
-# import random
+
 from datasets import Dataset, DatasetDict
 
 from opencompass.registry import LOAD_DATASET
@@ -15,7 +15,7 @@ from .base import BaseDataset
 class CEvalDataset(BaseDataset):
 
     @staticmethod
-    def load(path: str, name: str, local_mode: bool = False, limit=5):
+    def load(path: str, name: str, local_mode: bool = False):
         path = get_data_path(path, local_mode=local_mode)
         dataset = {}
         if environ.get('DATASET_SOURCE') == 'ModelScope':
@@ -23,31 +23,25 @@ class CEvalDataset(BaseDataset):
             dataset = MsDataset.load(dataset_name=path, subset_name=name)
         else:
             for split in ['dev', 'val', 'test']:
-                raw_data = []
                 filename = osp.join(path, split, f'{name}_{split}.csv')
                 with open(filename, encoding='utf-8') as f:
                     reader = csv.reader(f)
-                    header = next(reader)  # 读取表头
-                    
+                    header = next(reader)
                     for row in reader:
                         item = dict(zip(header, row))
                         item.setdefault('explanation', '')
                         item.setdefault('answer', '')
-                        raw_data.append(item)
-                
-                # 随机打乱数据顺序
-                # random.shuffle(raw_data)
-                if limit is not None:
-                    raw_data = raw_data[:limit]  # 仅加载随机采样的 limit 条数据
-                dataset[split] = raw_data
-            # 将数据转换为 Hugging Face 的 DatasetDict 格式
-            dataset = DatasetDict({split: Dataset.from_list(data) for split, data in dataset.items()})
-        
+                        dataset.setdefault(split, []).append(item)
+            dataset = DatasetDict(
+                {i: Dataset.from_list(dataset[i])
+                 for i in dataset})
         return dataset
 
 
 class CEvalDatasetClean(BaseDataset):
 
+    # load the contamination annotations of CEval from
+    # https://github.com/liyucheng09/Contamination_Detector
     @staticmethod
     def load_contamination_annotations(path, split='val'):
         import requests
@@ -73,17 +67,18 @@ class CEvalDatasetClean(BaseDataset):
         return annotations
 
     @staticmethod
-    def load(path: str, name: str, limit=5):  # 添加 limit 参数
+    def load(path: str, name: str):
         path = get_data_path(path)
         dataset = {}
         if environ.get('DATASET_SOURCE') == 'ModelScope':
             from modelscope import MsDataset
             dataset = MsDataset.load(dataset_name=path, subset_name=name)
+            # 向该数据添加 'is_clean' 字段
             annotations = CEvalDatasetClean.load_contamination_annotations(
                 path, 'val')
             val = dataset['val']
             val_data = []
-            for index in range(min(val.num_rows, limit)):  # 限制加载的数据条数
+            for index in range(val.num_rows):
                 row = val[index]
                 row_id = f'{name}-{index}'
                 row.update({
@@ -96,20 +91,19 @@ class CEvalDatasetClean(BaseDataset):
         else:
             for split in ['dev', 'val', 'test']:
                 if split == 'val':
-                    annotations = CEvalDatasetClean.load_contamination_annotations(
-                        path, split)
+                    annotations = \
+                        CEvalDatasetClean.load_contamination_annotations(
+                            path, split)
                 filename = osp.join(path, split, f'{name}_{split}.csv')
                 with open(filename, encoding='utf-8') as f:
                     reader = csv.reader(f)
                     header = next(reader)
-                    for i, row in enumerate(reader):
-                        if i >= limit:  # 仅加载前 limit 条数据
-                            break
+                    for row_index, row in enumerate(reader):
                         item = dict(zip(header, row))
                         item.setdefault('explanation', '')
                         item.setdefault('answer', '')
                         if split == 'val':
-                            row_id = f'{name}-{i}'
+                            row_id = f'{name}-{row_index}'
                             if row_id in annotations:
                                 item['is_clean'] = annotations[row_id][0]
                             else:
