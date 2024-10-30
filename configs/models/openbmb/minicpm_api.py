@@ -3,7 +3,7 @@ from opencompass.models import minicpm
 models = [
     dict(
         type=minicpm,                             # 使用
-        path='http://192.168.10.92:8000',         # 本地暴露的模型api路径
+        path='http://192.168.10.22:8000',         # 本地暴露的模型api路径
         key='',                  
         max_seq_len=2048,                        # 最大输入长度
         abbr='minicpm',                          # 模型简称

@@ -13,6 +13,9 @@ with read_base():
     from .groups.scibench import scibench_summary_groups
     from .groups.mgsm import mgsm_summary_groups
     from .groups.longbench import longbench_summary_groups
+    from .groups.mini_ceval import mini_ceval_summary_groups
+    from .groups.mini_mmlu import mini_mmlu_summary_groups
+    from .groups.mini_cmmlu import mini_cmmlu_summary_groups
 
 summarizer = dict(
     summary_groups=sum([v for k, v in locals().items() if k.endswith('_summary_groups')], []),

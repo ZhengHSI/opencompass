@@ -253,6 +253,43 @@ DATASETS_MAPPING = {
         "hf_id": "opencompass/xsum",
         "local": "./data/Xsum/dev.jsonl",
     },
+    # mini_data/arc
+    "opencompass/mini_data/arc": {
+        "ms_id": "opencompass/mini_data/arc",
+        "hf_id": "opencompass/mini_data/arc",
+        "local": "./data/mini_data/arc/ARC-Challenge-Test.jsonl",
+    },
+    # mini_data/ceval
+    "opencompass/mini_data/ceval": {
+        "ms_id": "opencompass/mini_data/ceval",
+        "hf_id": "opencompass/mini_data/ceval",
+        "local": "./data/mini_data/ceval",
+    },
+    # mini_data/cmmlu
+    "opencompass/mini_data/cmmlu": {
+        "ms_id": "opencompass/mini_data/cmmlu",
+        "hf_id": "opencompass/mini_data/cmmlu",
+        "local": "./data/mini_data/cmmlu",
+    },
+    # mini_data/gsm8k
+    "opencompass/mini_data/gsm8k": {
+        "ms_id": "opencompass/mini_data/gsm8k",
+        "hf_id": "opencompass/mini_data/gsm8k",
+        "local": "./data/mini_data/gsm8k/",
+    },
+    # mini_data/hellaswag
+    "opencompass/mini_data/hellaswag": {
+        "ms_id": "opencompass/mini_data/hellaswag",
+        "hf_id": "opencompass/mini_data/hellaswag",
+        "local": "./data/mini_data/hellaswag/",
+    },
+    # mini_data/mmlu
+    "opencompass/mini_data/mmlu": {
+        "ms_id": "opencompass/mini_data/mmlu",
+        "hf_id": "opencompass/mini_data/mmlu",
+        "local": "./data/mini_data/mmlu",
+    },
+
 }
 
 DATASETS_URL = {

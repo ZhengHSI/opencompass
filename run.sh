@@ -1,9 +1,10 @@
-python3 run.py --models minicpm_api --datasets hellaswag_mini_10shot_gen_e42710 -w outputs/minicpm_api+hellaswag_mini --dump-eval-details
 python3 run.py --models minicpm_api --datasets ceval_mini_gen_2daf24 -w outputs/minicpm_api+ceval_mini --dump-eval-details
 python3 run.py --models minicpm_api --datasets cmmlu_mini_gen_c13365 -w outputs/minicpm_api+cmmlu_mini --dump-eval-details
 python3 run.py --models minicpm_api --datasets mmlu_mini_gen_4d595a -w outputs/minicpm_api+mmlu_mini --dump-eval-details
+python3 run.py --models minicpm_api --datasets hellaswag_mini_10shot_gen_e42710 -w outputs/minicpm_api+hellaswag_mini --dump-eval-details
 python3 run.py --models minicpm_api --datasets ARC_c_mini_gen_1e0de5 -w outputs/minicpm_api+arc_c_mini --dump-eval-details
 python3 run.py --models minicpm_api --datasets gsm8k_mini_gen_1d7fe4 -w outputs/minicpm_api+gsm8k_mini --dump-eval-details
+
 
 # python3 run.py --models minicpm_api --datasets gsm8k_gen_1d7fe4 -w outputs/minicpm_api+gsm8k --dump-eval-details
 # python3 run.py --models minicpm_api --datasets math_0shot_gen_393424 -w outputs/minicpm_api+math --dump-eval-details
